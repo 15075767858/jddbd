@@ -1,0 +1,30 @@
+{
+    "name": "My First Extension",
+    "version": "1.0",
+    "manifest_version": 2,
+    "description": "The first extension that I made.",
+    "browser_action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html"
+    },
+    "web_accessible_resources": [
+        "/qiang.js"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://dbditem.jd.com/*"
+            ],
+            "js": [
+                
+                "charu.js"
+            ]
+        }
+    ] /*,
+  "permissions": [
+    "webRequest"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  }*/
+}
