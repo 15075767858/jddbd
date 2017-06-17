@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
-</html>
 
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <h1>
+    <%= title %>
+  </h1>
+  <p>Welcome to
+    <%= title %>
+  </p>
+
+  <form method="get" action="/">
+    <input name="command">
+    <button type="submit">提交</button>
+  </form>
+
+  <iframe >
+  </iframe>
+
+  <iframe >
+  </iframe>
+  
+  <iframe >
+  </iframe>
+  
+</body>
+<script>
+  for (var i = 0; i < 10; i++) {
+    var div = document.createElement("div")
+    document.body.appendChild(div);
+  }
+
+</script>
+
+</html>

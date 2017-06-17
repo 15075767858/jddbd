@@ -9,10 +9,24 @@ var path = require('path');
 app.engine('html', ejs.__express);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+var phantom = require('phantom');
+var page;
 
 app.get('/', function (req, res) {
+    var parmaiId = req.query.command;
+    res.cookie("aa","bb");
+    res.cookie("cc","bb");
+    res.cookie("dd","bb");
     res.render('index', { title: 'EJS' });
 })
+
+
+app.get("/test", function (req, res) {
+    request("")
+
+})
+
+
 
 app.get('/jiagebiao', function (req, res) {
     request.post("http://jd.svipnet.com/list.php", {
@@ -63,11 +77,41 @@ app.get("/jsonpinfo", function (req, res) {
     })
 })
 
+
+
+
 var server = app.listen(8081, function () {
     var host = server.address().address
     var port = server.address().port
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
     schedule.scheduleJob('0,10,20,30,40,50 * * * * *', function () {
-        console.log('scheduleCronstyle:' + new Date());
+        //console.log('scheduleCronstyle:' + new Date());
     });
 })
+
+
+var pageRun = async function () {
+    const instance = await phantom.create();
+    page = await instance.createPage();
+    // await page.on("onResourceRequested", function (requestData) {
+    //     console.info('Requesting', requestData.url)
+    // });
+    // await page.on("onResourceReceived", function (response) {
+    //     console.log('Response (#' + response.id + ', stage "' + response.stage + '"): ' + JSON.stringify(response));
+    // });
+    await page.on("onConsoleMessage", function (msg) {
+        console.log("msg= " + msg);
+    });
+    const status = await page.open('https://passport.jd.com/uc/login?ltype=logout');
+    console.log(status);
+    const content = await page.property('content');
+    console.log(content);
+    page.render('example.png');
+    setInterval(function () {
+        page.render('example.png');
+        page.evaluate(function () {
+            return document.titele;
+        });
+    }, 10000)
+
+}
