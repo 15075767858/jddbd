@@ -6,26 +6,57 @@ var express = require('express');
 var app = express();
 var ejs = require('ejs');
 var path = require('path');
+var goods = require("./goods")
 app.engine('html', ejs.__express);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 var phantom = require('phantom');
+var dbutil = require("./dbutil");
 var page;
-
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res) {
-    var parmaiId = req.query.command;
-    res.cookie("aa","bb");
-    res.cookie("cc","bb");
-    res.cookie("dd","bb");
-    res.render('index', { title: 'EJS' });
-})
 
-
-app.get("/test", function (req, res) {
-    request("")
+    dbutil.getCountMaxId(function (data) {
+        data.title = "Ejs"
+        var parmaiId = req.query.command;
+        res.cookie("dd", "bb");
+        res.render('index', data);
+    })
 
 })
+app.get("/getInfo", function (req, res) {
+    dbutil.getCountMaxId(function (data) {
+        res.send(JSON.stringify(data));
+    })
+})
 
+app.get("/saveGoods", function (req, res) {
+    dbutil.getCountMaxId(function (data) {
+
+        var start = data.maxId || 10000000;
+        var end = parseInt(req.query.end) || 16000000;
+        goods.saveGoodsByIds(start, end, function () {
+            res.send(start + "," + end);
+        });
+
+    })
+})
+app.get("/updateNameStart", function (req, res) {
+    goods.updateNameStart();
+})
+
+app.get("/login", function (req, res) {
+    phantom.create().then(instance => {
+        return instance.createPage();
+    }).then(page => {
+        console.log(page)
+        //page.load("https://passport.jd.com/uc/login")
+        page.invokeAsyncMethod('open', "https://passport.jd.com/uc/login").then(function (status) {
+            console.log(status);
+        });
+    })
+
+})
 
 
 app.get('/jiagebiao', function (req, res) {
@@ -65,6 +96,7 @@ app.get('/goodshrefs', function (req, res) {
     })
 })
 
+
 //批量查询商品信息    var url = 'https://dbditem.jd.com/services/currentList.action?paimaiIds=15493452-15493452&callback=showData&t=1496663855472&callback=jQuery3161076&_=1496663855473';
 
 app.get("/jsonpinfo", function (req, res) {
@@ -78,40 +110,50 @@ app.get("/jsonpinfo", function (req, res) {
 })
 
 
-
-
 var server = app.listen(8081, function () {
     var host = server.address().address
     var port = server.address().port
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
-    schedule.scheduleJob('0,10,20,30,40,50 * * * * *', function () {
-        //console.log('scheduleCronstyle:' + new Date());
-    });
+    //schedule.scheduleJob('0,10,20,30,40,50 * * * * *', function () {
+    //console.log('scheduleCronstyle:' + new Date());
+    //});
+    //pageRun();
 })
 
 
 var pageRun = async function () {
     const instance = await phantom.create();
     page = await instance.createPage();
-    // await page.on("onResourceRequested", function (requestData) {
-    //     console.info('Requesting', requestData.url)
-    // });
-    // await page.on("onResourceReceived", function (response) {
-    //     console.log('Response (#' + response.id + ', stage "' + response.stage + '"): ' + JSON.stringify(response));
-    // });
+
+    await page.on("onResourceRequested", function (requestData) {
+        //console.info('Requesting', requestData.url)
+    });
+    await page.on("onResourceReceived", function (response) {
+        //console.log('Response (#' + response.id + ', stage "' + response.stage + '"): ' + JSON.stringify(response));
+    });
     await page.on("onConsoleMessage", function (msg) {
         console.log("msg= " + msg);
     });
-    const status = await page.open('https://passport.jd.com/uc/login?ltype=logout');
+
+    const status = await page.open('https://passport.jd.com/uc/login');
     console.log(status);
     const content = await page.property('content');
     console.log(content);
+
     page.render('example.png');
+    var cookies = await page.cookies();
+    console.log(cookies)
     setInterval(function () {
+        console.log(page)
         page.render('example.png');
         page.evaluate(function () {
-            return document.titele;
+            return document.cookies;
         });
     }, 10000)
 
 }
+
+
+
+
+

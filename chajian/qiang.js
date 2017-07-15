@@ -73,7 +73,6 @@ function startPaiMai() {
     var url = "//www.smartio.cc:8081/jsonpinfo?paimaiId=" + paimaiId;
     $.ajax({url: url, dataType: "jsonp"})
 
-    return ;
     var url = "//bid.jd.com/json/current/englishquery?paimaiId=" + paimaiId + "&skuId=0&t=" + getRamdomNumber() + "&start=" + queryStart + "&end=" + queryEnd;
     $.ajax({
         url: url, dataType: "jsonp",
@@ -142,7 +141,7 @@ function mgetGs() {
             }
             console.log(response);
 
-            if (response.remainTime < 1000 + delayNum + 50) {
+            if (response.remainTime < 1000 + delayNum*2 ) {
 
                 if (response.bidList[0].username != "****i000") {
 

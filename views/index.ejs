@@ -6,6 +6,7 @@
     <%= title %>
   </title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
+  <link rel='stylesheet' href='/public/stylesheets/theme-gray-all.css'>
 </head>
 
 <body>
@@ -16,26 +17,34 @@
     <%= title %>
   </p>
 
-  <form method="get" action="/">
-    <input name="command">
-    <button type="submit">提交</button>
-  </form>
+  <div id="info"></div>
+     maxId: <%= maxId %>
+<br>
 
-  <iframe >
-  </iframe>
+count:<%= count %>
 
-  <iframe >
-  </iframe>
+<br>
+
+minNameId:<%= minNameId %>
   
-  <iframe >
-  </iframe>
-  
+<a href="/saveGoods">add</a>
+<a href="/updateNameStart">name</a>
 </body>
+<script src="/public/javascripts/ext-all.js"></script>
+
 <script>
-  for (var i = 0; i < 10; i++) {
-    var div = document.createElement("div")
-    document.body.appendChild(div);
-  }
+setInterval(function(){
+  Ext.Ajax.request({
+    url:"/getInfo"
+  }).then(function(response){
+    var info = document.getElementById("info");
+    info.innerHTML=response.responseText+"<br>" + info.innerHTML;
+    //Ext.getBody().append(response.responseText)
+  })
+
+
+},60000)
+Ext.Msg.alert("ad")
 
 </script>
 
