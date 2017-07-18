@@ -3,49 +3,92 @@
 
 <head>
   <title>
-    <%= title %>
   </title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
   <link rel='stylesheet' href='/public/stylesheets/theme-gray-all.css'>
+  <style>
+    .info {
+      width: 1000px;
+      background: mediumturquoise;
+    }
+
+    .jindu {
+      background: cadetblue;
+    }
+  </style>
 </head>
 
 <body>
   <h1>
-    <%= title %>
   </h1>
   <p>Welcome to
-    <%= title %>
   </p>
 
-  <div id="info"></div>
-     maxId: <%= maxId %>
-<br>
+  <div id="info">
+    <div id="jindu">1</div>
+  </div>
 
-count:<%= count %>
+  <br>
 
-<br>
 
-minNameId:<%= minNameId %>
-  
-<a href="/saveGoods">add</a>
-<a href="/updateNameStart">name</a>
+  <br>
+
+
+  <a href="/saveGoods">add</a>
+  <br>
+  <a href="/updateNameStart">name</a>
+  <br>
+  <a href="/reboot">reboot</a>
+  <br>
+  <a href="javascript:open('/login')">login</a>
+  <br>
+  <input type="text" id="paimaiId">
+  <input type="text" id="jiage">
+  <input type="button" id="paiGoods" value="拍商品">
+
 </body>
 <script src="/public/javascripts/ext-all.js"></script>
 
 <script>
-setInterval(function(){
-  Ext.Ajax.request({
-    url:"/getInfo"
-  }).then(function(response){
-    var info = document.getElementById("info");
-    info.innerHTML=response.responseText+"<br>" + info.innerHTML;
-    //Ext.getBody().append(response.responseText)
+  document.getElementById("paiGoods").onclick = function () {
+    var paimaiId = document.getElementById("paimaiId").value;
+    var jiage = document.getElementById("jiage").value;
+    var a = open("/paiGoods?paimaiId=" + paimaiId+"&jiage="+jiage)
+    a.onload = function () {
+      a.close();
+    }
+  }
+
+  Ext.onReady(function () {
+    getInfo()
   })
 
+  setInterval(function () {
+    getInfo()
+  }, 60000)
 
-},60000)
-Ext.Msg.alert("ad")
+  function getInfo() {
+    Ext.Ajax.request({
+      url: "/getInfo"
+    }).then(function (response) {
+      var data = Ext.decode(response.responseText);
+      var other = data.goodsCount - data.nullCount;
+      var body = document.getElementsByTagName("body")[0];
+      var info = document.createElement("div");
+      info.className = "info";
+      var jindu = document.createElement("div");
+      jindu.className = "jindu";
+      info.appendChild(jindu);
+      jindu.width = other + "px"
+      body.appendChild(info);
 
+      jindu.style.width = other / data.goodsCount * 1000 + "px";
+      jindu.innerHTML = data.nullCount + " , " + data.goodsCount;
+      console.log(data)
+      //Ext.getBody().append(response.responseText)
+    })
+  }
+  //Ext.Msg.alert("ad")
 </script>
 
 </html>

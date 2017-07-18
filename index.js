@@ -12,24 +12,54 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 var phantom = require('phantom');
 var dbutil = require("./dbutil");
+var paimai = require("./paimai");
+const exec = require('child_process').exec;
 var page;
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+var goodsCount;
+
+
 app.get('/', function (req, res) {
 
-    dbutil.getCountMaxId(function (data) {
-        data.title = "Ejs"
-        var parmaiId = req.query.command;
-        res.cookie("dd", "bb");
-        res.render('index', data);
-    })
+    // dbutil.getCountMaxId(function (data) {
+    //     data.title = "Ejs"
+    //     var parmaiId = req.query.command;
+    //     res.cookie("dd", "bb");
+    //     res.render('index', data);
+    // })
 
+    res.render('index');
 })
 app.get("/getInfo", function (req, res) {
-    dbutil.getCountMaxId(function (data) {
+    if (!goodsCount) {
+        dbutil.getCount(function (err, results) {
+            console.log(results)
+            goodsCount = results[0]['count(paimaiId)'];
+        })
+    }
+    dbutil.getNullCount(function (err, results) {
+        var nullCount = results[0]['count(paimaiId)']
+        var data = {
+            goodsCount,
+            nullCount
+        };
+        results[0]['max(paimaiId)'];
+
         res.send(JSON.stringify(data));
     })
+    // dbutil.getCountMaxId(function (data) {
+    //     res.send(JSON.stringify(data));
+    // })
 })
+app.get("/reboot", function (req, res) {
+    res.send("ok");
+    exec("sh reboot.sh")
+    setTimeout(function () {
+        process.kill(process.pid)
+    }, 1000)
 
+})
 app.get("/saveGoods", function (req, res) {
     dbutil.getCountMaxId(function (data) {
 
@@ -46,28 +76,43 @@ app.get("/updateNameStart", function (req, res) {
 })
 
 app.get("/login", function (req, res) {
-    phantom.create().then(instance => {
-        return instance.createPage();
-    }).then(page => {
-        console.log(page)
-        //page.load("https://passport.jd.com/uc/login")
-        page.invokeAsyncMethod('open', "https://passport.jd.com/uc/login").then(function (status) {
-            console.log(status);
-        });
-    })
-
+    //paimai.login()
+    res.render("login")
 })
-
+app.get("/inputCode", function (req, res) {
+    var code = req.query.code;
+    paimai.inputCode(code)
+    console.log(code)
+    res.send(code + "ok");
+})
+app.get("/execJs", function (req, res) {
+    paimai.execJs(req.query.js, (html) => {
+        res.send(html);
+    });
+})
+app.get("/paiGoods", function (req, res) {
+    var paimaiId = req.query.paimaiId;
+    var jiage = req.query.jiage;
+    paimai.paiGoods({
+        paimaiId: paimaiId,
+        jiage: jiage
+    },function(msg){
+        res.send(msg)
+    })
+//    res.send("ok");
+})
 
 app.get('/jiagebiao', function (req, res) {
     request.post("http://jd.svipnet.com/list.php", {
         form: {
-            "shopName": "surface pro", "use": "all", "days": "90", "numbers": "18"
+            "shopName": "surface pro",
+            "use": "all",
+            "days": "90",
+            "numbers": "18"
         }
     }, function (err, httpResponse, body) {
         res.send(body);
-    }
-    )
+    })
 })
 
 //[{href:"",name:"",}]
@@ -109,17 +154,17 @@ app.get("/jsonpinfo", function (req, res) {
     })
 })
 
-
 var server = app.listen(8081, function () {
     var host = server.address().address
     var port = server.address().port
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
+    paimai.login();
+
     //schedule.scheduleJob('0,10,20,30,40,50 * * * * *', function () {
     //console.log('scheduleCronstyle:' + new Date());
     //});
     //pageRun();
 })
-
 
 var pageRun = async function () {
     const instance = await phantom.create();
@@ -152,8 +197,3 @@ var pageRun = async function () {
     }, 10000)
 
 }
-
-
-
-
-

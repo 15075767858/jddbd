@@ -1,0 +1,16 @@
+<img src="/public/login.jpeg">
+<input type="text" id="code">
+<input type="button" id="subCode" value="提交">
+
+<img src="/public/keeplogin.jpeg">
+
+
+<script>
+    document.getElementById("subCode").onclick = function () {
+        var code = document.getElementById("code").value;
+        var a = open("/inputCode?code=" + code)
+        a.onload = function () {
+            a.close();
+        }
+    }
+</script>

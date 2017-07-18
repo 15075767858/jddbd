@@ -35,17 +35,36 @@ function m_initElements() {
     }
     var m_bt1 = document.createElement("button");
     m_bt1.innerHTML = "我要开始抢啊啊啊啊啊啊啊啊!!!"
+    var m_bt2 = document.createElement("button");
+    m_bt2.innerHTML = "后台抢!!!"
     //var m_input1 = document.createElement("input");
     var m_info = document.createElement("textarea");
     m_info.style.height = "100px"
     m_info.style.width = "500px"
+    document.body.insertBefore(m_bt2, document.body.childNodes[0]);
+
     document.body.insertBefore(m_info, document.body.childNodes[0]);
     document.body.insertBefore(m_bt1, document.body.childNodes[0]);
     //document.body.insertBefore(m_input1, document.body.childNodes[0]);
+    m_bt2.onclick = function () {
+        if (m_win)
+            m_win.close();
+        var destPrice = prompt();
+
+        // $.ajax({
+        //     url: "http://www.smartio.cc:8081/paiGoods?paimaiId=" + paimaiId + "&jiage=" + destPrice,
+        //     success: function (response) {
+        //         console.log(response)
+        //         m_info.value = response
+        //     }
+        // })
+        var win = open("http://www.smartio.cc:8081/paiGoods?paimaiId=" + paimaiId + "&jiage=" + destPrice)
+
+    }
     m_bt1.onclick = function () {
         if (m_win)
             m_win.close();
-        var destPrice = prompt();//m_input1.value; 目标价格
+        var destPrice = prompt(); //m_input1.value; 目标价格
         window.destPrice = destPrice;
         if (!destPrice) {
             console.log("卧槽 不抢了 ");
@@ -67,15 +86,17 @@ function m_initElements() {
 
 
 var paimaiId = $("#paimaiId").val();
+
 function startPaiMai() {
     window.sTime = new Date().getTime();
 
-    var url = "//www.smartio.cc:8081/jsonpinfo?paimaiId=" + paimaiId;
-    $.ajax({url: url, dataType: "jsonp"})
+    //var url = "//www.smartio.cc:8081/jsonpinfo?paimaiId=" + paimaiId;
+    //$.ajax({url: url, dataType: "jsonp"})
 
     var url = "//bid.jd.com/json/current/englishquery?paimaiId=" + paimaiId + "&skuId=0&t=" + getRamdomNumber() + "&start=" + queryStart + "&end=" + queryEnd;
     $.ajax({
-        url: url, dataType: "jsonp",
+        url: url,
+        dataType: "jsonp",
         success: function (response) {
             var eTime = new Date().getTime();
             window.delayNum = eTime - window.sTime;
@@ -85,12 +106,12 @@ function startPaiMai() {
                 console.log("距离开加价时间还有 ", response.remainTime / 1000, "秒");
                 setTimeout(function () {
                     startPaiMai();
-                }, response.remainTime + 3000);//3秒后进入等待买模式
+                }, response.remainTime + 3000); //3秒后进入等待买模式
                 return;
             }
             if (response.auctionStatus == 1) {
-                addInfo("距离拍卖结束时间还有=" + endTime + "秒当前延时=" + delayNum + "当前价格=" + response.currentPrice + "我的价格=" + destPrice + "商品名=" + m_name);
-                console.log("距离拍卖结束时间还有 " + endTime-- + "秒，", "当前延时=", delayNum, "当前价格=", response.currentPrice, "我的价格=", destPrice);
+                //addInfo("距离拍卖结束时间还有=" + endTime + "秒当前延时=" + delayNum + "当前价格=" + response.currentPrice + "我的价格=" + destPrice + "商品名=" + m_name);
+                console.log("距离拍卖结束时间还有 " + endTime-- + "秒，", "当前延时=", delayNum, "当前价格=", response.currentPrice, "我的价格=", destPrice, "remainTime=", response.remainTime);
                 if (response.remainTime > 5000) {
                     setTimeout(function () {
                         startPaiMai();
@@ -103,6 +124,7 @@ function startPaiMai() {
         }
     })
 }
+
 function jQuery8847406(response) {
     var eTime = new Date().getTime();
     window.delayNum = eTime - window.sTime;
@@ -112,7 +134,7 @@ function jQuery8847406(response) {
         console.log("距离开加价时间还有 ", response.remainTime / 1000, "秒");
         setTimeout(function () {
             startPaiMai();
-        }, response.remainTime + 3000);//3秒后进入等待买模式
+        }, response.remainTime + 3000); //3秒后进入等待买模式
         return;
     }
     if (response.auctionStatus == 1) {
@@ -128,20 +150,25 @@ function jQuery8847406(response) {
         }
     }
 }
+
 function mgetGs() {
+    sTime = new Date().getTime();
     var url = "//bid.jd.com/json/current/englishquery?paimaiId=" + paimaiId + "&skuId=0&t=" + getRamdomNumber() + "&start=" + queryStart + "&end=" + queryEnd;
     $.ajax({
-        url: url, dataType: "jsonp",
+        url: url,
+        dataType: "jsonp",
         success: function (response) {
+            eTime = new Date().getTime();
+            delayNum = eTime - sTime;
             //currentPrice 当前竞拍价格
             //remainTime:"剩余时间"
             if (response.remainTime == -1) {
-                console.log("结束");
+                console.log("完成");
                 return;
             }
-            console.log(response);
+            //            if (response.remainTime < 1000 + delayNum*2+50 ) {
 
-            if (response.remainTime < 1000 + delayNum*2 ) {
+            if (response.remainTime < 1000 + delayNum) {
 
                 if (response.bidList[0].username != "****i000") {
 
@@ -164,18 +191,24 @@ function mgetGs() {
             } else {
                 console.log("还没到时间 当前时间是", response.remainTime);
                 mgetGs();
-
             }
-            console.log("当前价格=", response.currentPrice, "当前时间", response.remainTime)
+
+            console.log("当前价格=", response.currentPrice, "当前时间", response.remainTime, "当前延时", delayNum, "remainTime=", response.remainTime,"date = ",new Date().toLocaleString(),new Date().getTime())
 
         }
     });
 }
+
 function my_sell(price) {
     var url = "/services/bid.action?t=" + getRamdomNumber();
-    var data = { paimaiId: paimaiId, price: price, proxyFlag: 0, bidSource: 0 };
+    var data = {
+        paimaiId: paimaiId,
+        price: price,
+        proxyFlag: 0,
+        bidSource: 0
+    };
     jQuery.getJSON(url, data, function (jqXHR) {
+        console.log("完成", jqXHR.message)
         console.log('%c ' + jqXHR.message, 'background: #000; color: #FFF');
     });
 }
-

@@ -68,8 +68,8 @@ function saveGoosByInfoArr(arr, callback) {
 
 
 
-function UpdateGoodsNameUse(GoodsArr, callback) {
-    var info = GoodsArr[0]
+function UpdateGoodsNameUse(info, callback) {
+    //var info = GoodsArr[0]
     //console.log(GoodsArr.length, info.paimaiId)
     var url = "http://dbditem.jd.com/" + info.paimaiId;
     getOneGoodsInfo({
@@ -77,19 +77,30 @@ function UpdateGoodsNameUse(GoodsArr, callback) {
     }, function (data) {
         data.paimaiId = info.paimaiId;
         dbutil.updateNameAndUse(data, function () {
-            updateNameStart()
+            callback()
+            //updateNameStart()
         })
     })
 }
 
 
 function updateNameStart() {
-
+    //目前1500条 不打印3500条 
     dbutil.getNullGoods(function (err, results, fields) {
-        
-        UpdateGoodsNameUse(results, function () {
+        var info;
+        var count = 0;
+        var len = results.length;
+        console.log(results.length)
+        while (info = results.pop()) {
+            UpdateGoodsNameUse(info, function () {
+                count++
+                if (count == len) {
+                    updateNameStart()
+                }
+            })
+        }
+        //console.log("再来")
 
-        })
 
     })
 
@@ -98,26 +109,33 @@ function updateNameStart() {
 function getOneGoodsInfo(option, callback) {
     var url = option.url;
     request(url, function (err, response, body) {
+
         var data = getPageInfo(body);
         callback(data);
     })
 }
 
 function getPageInfo(html) {
-    var name, use;
-    var $ = cheerio.load(html);
-    var dname = $("div.name");
-    if (dname.length > 0) {
-        name = dname[0].attribs.title;
+    try {
+
+        var name, use;
+        var $ = cheerio.load(html);
+
+        var dname = $("div.name");
+        if (dname.length > 0) {
+            name = dname[0].attribs.title;
+        }
+        var i = $("div.name i")
+        if (i.length > 0) {
+            use = i[0].childNodes[0].data
+        }
+        return {
+            goodsName: name,
+            goodsUse: use
+        };
+    }catch(e){
+        return {goodsName:"",goodsUse:""}
     }
-    var i = $("div.name i")
-    if (i.length > 0) {
-        use = i[0].childNodes[0].data
-    }
-    return {
-        goodsName: name,
-        goodsUse: use
-    };
 }
 
 exports.saveGoodsByIds = saveGoodsByIds;
