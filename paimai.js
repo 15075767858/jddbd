@@ -9,10 +9,10 @@ var sitepage = null;
 function login(callback) {
     phantom.create().then(function (instance) {
         phInstance = instance;
-
         return instance.createPage()
     }).then(function (page) {
-        sitepage = page;
+        phInstance = page;
+
         var url = "http://passport.jd.com/uc/login";
         page.invokeAsyncMethod('open', url).then(function (status) {
             console.log(status)
@@ -22,6 +22,7 @@ function login(callback) {
             });
 
             var inter1 = setInterval(function () {
+
                 page.cookies().then(function (cookies) {
                     //console.log(cookies)
                     var loginCookie;
@@ -32,6 +33,9 @@ function login(callback) {
                             clearInterval(inter1)
                             fs.unlinkSync("public/login.jpeg");
                             keepLogin(page)
+                            page.evaluateJavaScript("function (){ return document.cookie}").then(function (html) {
+                                callback(html)
+                            })
                             break;
                         }
                     }
@@ -41,10 +45,11 @@ function login(callback) {
                     url = resUrl;
                 })
                 page.reload()
-                    
+
                 page.render('public/login.jpeg');
             }, 10000)
         });
+
         page.property('onResourceRequested', function (requestData, networkRequest) {
             //console.log(arguments)
             //console.log(requestData.url);
@@ -84,7 +89,7 @@ function paiGoods(option, callback) {
     console.log(option)
     var paimaiId = option.paimaiId;
     var jiage = option.jiage;
-    var resMessage="";
+    var resMessage = "";
     phInstance.createPage().then(function (page) {
         page.invokeAsyncMethod("open", "http://dbditem.jd.com/" + paimaiId).then(function () {
             //console.log(page)
@@ -104,7 +109,7 @@ function paiGoods(option, callback) {
 
         page.on("onConsoleMessage", function (msg) {
             //resMessage+=msg+"<br>";
-            resMessage=msg+"<br>"+resMessage
+            resMessage = msg + "<br>" + resMessage
             if (msg.substr(0, 2) == "完成") {
                 callback(resMessage)
                 //setTimeout(function () {
@@ -213,3 +218,37 @@ exports.execJs = execJs;
 // // page.onConsoleMessage = function (msg) {
 // //     console.log(msg);
 // // };
+
+
+
+var pageRun = async function () {
+    const instance = await phantom.create();
+    page = await instance.createPage();
+
+    await page.on("onResourceRequested", function (requestData) {
+        //console.info('Requesting', requestData.url)
+    });
+    await page.on("onResourceReceived", function (response) {
+        //console.log('Response (#' + response.id + ', stage "' + response.stage + '"): ' + JSON.stringify(response));
+    });
+    await page.on("onConsoleMessage", function (msg) {
+        console.log("msg= " + msg);
+    });
+
+    const status = await page.open('https://passport.jd.com/uc/login');
+    console.log(status);
+    const content = await page.property('content');
+    console.log(content);
+
+    page.render('example.png');
+    var cookies = await page.cookies();
+    console.log(cookies)
+    setInterval(function () {
+        console.log(page)
+        page.render('example.png');
+        page.evaluate(function () {
+            return document.cookies;
+        });
+    }, 10000)
+
+}

@@ -4,7 +4,7 @@
 <head>
   <title>
   </title>
-  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
   <link rel='stylesheet' href='/public/stylesheets/theme-gray-all.css'>
   <style>
     .info {
@@ -19,75 +19,105 @@
 </head>
 
 <body>
-  <h1>
-  </h1>
-  <p>Welcome to
-  </p>
 
-  <div id="info">
-    <div id="jindu">1</div>
-  </div>
-
-  <br>
-
-
-  <br>
-
-
-  <a href="/saveGoods">add</a>
-  <br>
-  <a href="/updateNameStart">name</a>
-  <br>
-  <a href="/reboot">reboot</a>
-  <br>
-  <a href="javascript:open('/login')">login</a>
-  <br>
-  <input type="text" id="paimaiId">
-  <input type="text" id="jiage">
-  <input type="button" id="paiGoods" value="拍商品">
 
 </body>
 <script src="/public/javascripts/ext-all.js"></script>
 
 <script>
-  document.getElementById("paiGoods").onclick = function () {
-    var paimaiId = document.getElementById("paimaiId").value;
-    var jiage = document.getElementById("jiage").value;
-    var a = open("/paiGoods?paimaiId=" + paimaiId+"&jiage="+jiage)
-    a.onload = function () {
-      a.close();
-    }
-  }
-
   Ext.onReady(function () {
-    getInfo()
+    Ext.define("AccountManagerGrid", {
+      extend: "Ext.grid.Panel",
+      title: "账号管理",
+      tbar: [{
+          text: "增加账号",
+          handler: function () {
+            Ext.create("Ext.window.Window", {
+              title: "增加账号",
+              autoShow: true,
+              items: {
+                xtype: "form",
+                defaultType: "textfield",
+                items: [{
+                    fieldLabel: "用户名",
+                    name: "username",
+                  },
+                  {
+                    fieldLabel: "密码",
+                    name: "password"
+                  },
+                  {
+                    xtype: "button",
+                    text: "登录",
+                    handler: function () {
+                      this.up("form").submit({
+                        url: "/addAccount",
+                        success: function (form, action) {
+                          console.log("success", arguments)
+                        },
+                        failure: function (form, action) {
+                          console.log("failure", arguments)
+                        }
+                      })
+                    }
+                  }
+                ]
+              }
+            })
+          }
+        },
+        {
+          text: "删除账号",
+          handler: function () {
+
+          }
+        }
+      ],
+      store: {
+        fields: ["username", "password", "cookie"],
+        data: [{
+          username: "1",
+          password: "1",
+          cookie: "1"
+        }, {
+          username: "1",
+          password: "1",
+          cookie: "1"
+        }]
+      },
+      columns: [{
+          text: '账号',
+          dataIndex: 'username',
+          flex: 1
+        },
+        {
+          text: '密码',
+          dataIndex: 'password',
+        },
+        {
+          text: 'cookie',
+          dataIndex: 'cookie',
+        }
+      ]
+    })
+
+    Ext.define("MainPanel", {
+      extend: "Ext.tab.Panel",
+      title: "夺宝岛",
+      items: [{
+        title: "账号管理",
+        items: Ext.create("AccountManagerGrid")
+      }, {
+        title: "啊啊啊"
+      }]
+    })
+
+    Ext.create("MainPanel", {
+      renderTo: Ext.getBody(),
+    })
+
   })
 
-  setInterval(function () {
-    getInfo()
-  }, 60000)
-
-  function getInfo() {
-    Ext.Ajax.request({
-      url: "/getInfo"
-    }).then(function (response) {
-      var data = Ext.decode(response.responseText);
-      var other = data.goodsCount - data.nullCount;
-      var body = document.getElementsByTagName("body")[0];
-      var info = document.createElement("div");
-      info.className = "info";
-      var jindu = document.createElement("div");
-      jindu.className = "jindu";
-      info.appendChild(jindu);
-      jindu.width = other + "px"
-      body.appendChild(info);
-
-      jindu.style.width = other / data.goodsCount * 1000 + "px";
-      jindu.innerHTML = data.nullCount + " , " + data.goodsCount;
-      console.log(data)
-      //Ext.getBody().append(response.responseText)
-    })
-  }
   //Ext.Msg.alert("ad")
 </script>
 

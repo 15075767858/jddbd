@@ -1,4 +1,7 @@
 var request = require('request');
+request = request.defaults({
+    jar: true
+});
 var schedule = require("node-schedule");
 var cheerio = require("cheerio")
 var bodyParser = require('body-parser')
@@ -10,12 +13,13 @@ var goods = require("./goods")
 app.engine('html', ejs.__express);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-var phantom = require('phantom');
+//var phantom = require('phantom');
 var dbutil = require("./dbutil");
 var paimai = require("./paimai");
 const exec = require('child_process').exec;
 var page;
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/dbd', express.static(path.join(__dirname, 'dbd')));
 
 var goodsCount;
 
@@ -75,9 +79,12 @@ app.get("/updateNameStart", function (req, res) {
     goods.updateNameStart();
 })
 
-app.get("/login", function (req, res) {
+app.all("/login", function (req, res) {
     //paimai.login()
     res.render("login")
+})
+app.all("/addAccount", function (req, res) {
+    
 })
 app.get("/inputCode", function (req, res) {
     var code = req.query.code;
@@ -96,10 +103,10 @@ app.get("/paiGoods", function (req, res) {
     paimai.paiGoods({
         paimaiId: paimaiId,
         jiage: jiage
-    },function(msg){
+    }, function (msg) {
         res.send(msg)
     })
-//    res.send("ok");
+    //    res.send("ok");
 })
 
 app.get('/jiagebiao', function (req, res) {
@@ -153,12 +160,35 @@ app.get("/jsonpinfo", function (req, res) {
         res.send(body);
     })
 })
+app.get("/testCookie", function (req, res) {
+    //var url = "http://127.0.0.1/test.php"
+    //这个页面用到了cookie 实验成功
+    var url = "http://home.jd.com"
+
+    request({
+            url: url,
+            headers: {
+                cookie: "__jdv=122270672|direct|-|none|-|1500517641040; TrackID=1KjWZBLa7W99sQmn7J4IGash52mDhVmzKqiAalHb2f3_wGT636uY28jN1S07eCBbxCWzvdc_16HmjtXFEczAA-hpKeQuuXYf4UbQ9Kqw3VIsHsIxZ1QQ_mp7y4UzeVBdM; pinId=PeNQr3jpP0Z4t4Y06rqR_Q; pin=paipai000; unick=paipai000; thor=9C9CF8D8F75B1D305A51D7331EC0E9B547E2E52D706DD9AC98EDEEA6C281BB9DD8B23D7EBEAADD4C06AD7A79E916D6B6DD7AFEB7D540B10D2B7B3F5DFC0C3808282B96BF8C044507DB4876FFAF7C59902F72E6F0567B486FA40C28ABACF5EB15CFDEF7F9166EE4AEF789F6D4D4C321AA1C78D6293859BCDBFD6B797EA3C917FE3890A2E8AE43E424C424D866078584D6; _tp=e5O%2Bed%2BozMR7XBkXAIctvQ%3D%3D; _pst=paipai000; ceshi3.com=000; user-key=10edd1fc-2620-4743-b2b7-4d4591c50f9e; cn=2; ipLoc-djd=1-72-4137-0; areaId=1; 3AB9D23F7A4B3C9B=JYFTRZO2CJN7ZDT2C256WO6NNP467TQIEE6D2QIQLUPIC7MXBS2SYNPINZVQ3JJIUU2XTH4CAX6UNRE62UJJI2SQTE; __jda=122270672.1500517641039962056337.1500517641.1500517641.1500517641.1; __jdb=122270672.12.1500517641039962056337|1.1500517641; __jdc=122270672; __jdu=1500517641039962056337; userInfoaccountclouds=1"
+            }
+        },
+        function (err, httpResponse, body) {
+            //console.log(httpResponse)
+            console.log(httpResponse.headers)
+            res.send(body);
+            // request(url, function (err, httpResponse, body) {
+            //     console.log(body)
+            // })
+        }
+    )
+})
 
 var server = app.listen(8081, function () {
     var host = server.address().address
     var port = server.address().port
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
-    paimai.login();
+    // paimai.login(function (cookie) {
+    //     console.log(cookie)
+    // });
 
     //schedule.scheduleJob('0,10,20,30,40,50 * * * * *', function () {
     //console.log('scheduleCronstyle:' + new Date());
@@ -166,34 +196,7 @@ var server = app.listen(8081, function () {
     //pageRun();
 })
 
-var pageRun = async function () {
-    const instance = await phantom.create();
-    page = await instance.createPage();
 
-    await page.on("onResourceRequested", function (requestData) {
-        //console.info('Requesting', requestData.url)
-    });
-    await page.on("onResourceReceived", function (response) {
-        //console.log('Response (#' + response.id + ', stage "' + response.stage + '"): ' + JSON.stringify(response));
-    });
-    await page.on("onConsoleMessage", function (msg) {
-        console.log("msg= " + msg);
-    });
-
-    const status = await page.open('https://passport.jd.com/uc/login');
-    console.log(status);
-    const content = await page.property('content');
-    console.log(content);
-
-    page.render('example.png');
-    var cookies = await page.cookies();
-    console.log(cookies)
-    setInterval(function () {
-        console.log(page)
-        page.render('example.png');
-        page.evaluate(function () {
-            return document.cookies;
-        });
-    }, 10000)
-
-}
+// document.getElementById("loginname").value
+// document.getElementById("nloginpwd").value
+// $("#loginsubmit").trigger("click")
